@@ -1,0 +1,1305 @@
+
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - E-Commerce App</title>
+    <!-- Font Awesome & Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-dark: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --sidebar-width: 260px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism Classes */
+        .glass {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+        }
+
+        /* Toast Notification */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+
+        .toast {
+            padding: 12px 20px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.success { background: var(--success); }
+        .toast.error { background: var(--danger); }
+        .toast.warning { background: var(--warning); }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+        /* Login Container */
+        #login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 400px;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-light);
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.3s;
+        }
+
+        .btn:hover { background: var(--primary-hover); }
+        .btn-danger { background: var(--danger); }
+        .btn-success { background: var(--success); }
+        .btn-sm { padding: 6px 12px; font-size: 12px; width: auto; }
+
+        /* Admin App Layout */
+        #admin-app { display: none; min-height: 100vh; }
+
+        .header {
+            height: 70px;
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            border-radius: 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar {
+            width: var(--sidebar-width);
+            position: fixed;
+            top: 70px; bottom: 0; left: 0;
+            padding: 20px 10px;
+            overflow-y: auto;
+            transition: 0.3s;
+            z-index: 99;
+        }
+
+        .sidebar-menu { list-style: none; }
+        .sidebar-menu li { margin-bottom: 8px; }
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+
+        .sidebar-menu a:hover, .sidebar-menu a.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .main-content {
+            margin-top: 70px;
+            margin-left: var(--sidebar-width);
+            padding: 20px;
+            transition: 0.3s;
+        }
+
+        .view-page { display: none; }
+        .view-page.active { display: block; }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .stat-info h3 { font-size: 24px; font-weight: 700; margin-top: 5px; }
+        .stat-icon { font-size: 32px; color: var(--primary); }
+
+        /* Mobile Responsive */
+        .menu-toggle { display: none; font-size: 24px; cursor: pointer; }
+
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.active { transform: translateX(0); width: 240px; }
+            .main-content { margin-left: 0; }
+            .menu-toggle { display: block; }
+        }
+
+        /* Mobile Card Responsive Tables */
+        .responsive-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .responsive-table th, .responsive-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        @media (max-width: 600px) {
+            .responsive-table thead { display: none; }
+            .responsive-table, .responsive-table tbody, .responsive-table tr, .responsive-table td {
+                display: block;
+                width: 100%;
+            }
+            .responsive-table tr {
+                margin-bottom: 15px;
+                background: rgba(30, 41, 59, 0.5);
+                border-radius: 8px;
+                padding: 10px;
+            }
+            .responsive-table td {
+                text-align: right;
+                padding-left: 50%;
+                position: relative;
+            }
+            .responsive-table td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 15px;
+                font-weight: 600;
+                color: var(--text-muted);
+            }
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 25px;
+        }
+
+        .flex-between { display: flex; justify-content: space-between; align-items: center; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        @media (max-width: 500px) { .grid-2 { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <div id="toast-container"></div>
+
+    <!-- LOGIN SCREEN -->
+    <div id="login-container">
+        <div class="login-card glass">
+            <h2>Admin Login</h2>
+            <p style="color: var(--text-muted); margin-bottom: 20px;">Access Production Dashboard</p>
+            <form id="admin-login-form">
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="login-email" class="form-control" required placeholder="admin@example.com">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="login-password" class="form-control" required placeholder="******">
+                </div>
+                <button type="submit" class="btn" id="login-btn">Login to Admin</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN ADMIN APP -->
+    <div id="admin-app">
+        <!-- HEADER -->
+        <header class="header glass">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <i class="fas fa-bars menu-toggle" id="sidebar-toggle"></i>
+                <h3 id="app-title-display">Admin Panel</h3>
+            </div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <span id="admin-user-email" style="font-size: 14px; color: var(--text-muted);"></span>
+                <button class="btn btn-sm btn-danger" id="logout-btn"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+        </header>
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar glass" id="sidebar">
+            <ul class="sidebar-menu">
+                <li><a href="#dashboard" class="nav-link active"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                <li><a href="#orders" class="nav-link"><i class="fas fa-shopping-bag"></i> Orders</a></li>
+                <li><a href="#products" class="nav-link"><i class="fas fa-box"></i> Products</a></li>
+                <li><a href="#categories" class="nav-link"><i class="fas fa-list"></i> Categories</a></li>
+                <li><a href="#sliders" class="nav-link"><i class="fas fa-images"></i> Sliders</a></li>
+                <li><a href="#payments" class="nav-link"><i class="fas fa-wallet"></i> Payments</a></li>
+                <li><a href="#social" class="nav-link"><i class="fas fa-share-alt"></i> Social Media</a></li>
+                <li><a href="#messages" class="nav-link"><i class="fas fa-envelope"></i> Messages</a></li>
+                <li><a href="#app-download" class="nav-link"><i class="fas fa-download"></i> App Download</a></li>
+                <li><a href="#telegram" class="nav-link"><i class="fab fa-telegram"></i> Telegram Bot</a></li>
+                <li><a href="#settings" class="nav-link"><i class="fas fa-cog"></i> Settings</a></li>
+            </ul>
+        </aside>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="main-content">
+
+            <!-- DASHBOARD VIEW -->
+            <section id="dashboard-view" class="view-page active">
+                <h2>Analytics Dashboard</h2>
+                <br>
+                <div class="stats-grid">
+                    <div class="stat-card glass">
+                        <div class="stat-info">
+                            <p style="color: var(--text-muted);">Total Revenue</p>
+                            <h3 id="stat-revenue">৳ 0</h3>
+                        </div>
+                        <i class="fas fa-money-bill-wave stat-icon"></i>
+                    </div>
+                    <div class="stat-card glass">
+                        <div class="stat-info">
+                            <p style="color: var(--text-muted);">Total Orders</p>
+                            <h3 id="stat-orders">0</h3>
+                        </div>
+                        <i class="fas fa-shopping-cart stat-icon"></i>
+                    </div>
+                    <div class="stat-card glass">
+                        <div class="stat-info">
+                            <p style="color: var(--text-muted);">Pending Orders</p>
+                            <h3 id="stat-pending">0</h3>
+                        </div>
+                        <i class="fas fa-clock stat-icon"></i>
+                    </div>
+                    <div class="stat-card glass">
+                        <div class="stat-info">
+                            <p style="color: var(--text-muted);">Total Products</p>
+                            <h3 id="stat-products">0</h3>
+                        </div>
+                        <i class="fas fa-boxes stat-icon"></i>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ORDERS VIEW -->
+            <section id="orders-view" class="view-page">
+                <div class="flex-between">
+                    <h2>Orders Management</h2>
+                    <input type="text" id="order-search" class="form-control" placeholder="Search orders..." style="width: 200px;">
+                </div>
+                <br>
+                <div class="glass" style="padding: 15px; overflow-x: auto;">
+                    <table class="responsive-table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Total</th>
+                                <th>TxID</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-table-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- PRODUCTS VIEW -->
+            <section id="products-view" class="view-page">
+                <div class="flex-between">
+                    <h2>Products Management</h2>
+                    <button class="btn btn-sm" id="add-product-btn" style="width: auto;"><i class="fas fa-plus"></i> Add Product</button>
+                </div>
+                <br>
+                <div class="glass" style="padding: 15px; overflow-x: auto;">
+                    <table class="responsive-table">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Name</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="products-table-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- CATEGORIES VIEW -->
+            <section id="categories-view" class="view-page">
+                <div class="flex-between">
+                    <h2>Category Management</h2>
+                    <button class="btn btn-sm" id="add-category-btn" style="width: auto;"><i class="fas fa-plus"></i> Add Category</button>
+                </div>
+                <br>
+                <div class="glass" style="padding: 15px; overflow-x: auto;">
+                    <table class="responsive-table">
+                        <thead>
+                            <tr>
+                                <th>Icon</th>
+                                <th>Name</th>
+                                <th>Color</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="categories-table-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- SLIDERS VIEW -->
+            <section id="sliders-view" class="view-page">
+                <div class="flex-between">
+                    <h2>Slider Management</h2>
+                    <button class="btn btn-sm" id="add-slider-btn" style="width: auto;"><i class="fas fa-plus"></i> Add Slider</button>
+                </div>
+                <br>
+                <div class="glass" style="padding: 15px; overflow-x: auto;">
+                    <table class="responsive-table">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Target URL</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sliders-table-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- PAYMENTS VIEW -->
+            <section id="payments-view" class="view-page">
+                <h2>Payment Settings</h2>
+                <br>
+                <form id="payment-settings-form" class="glass" style="padding: 20px;">
+                    <h3>bKash Settings</h3>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Enable bKash</label>
+                            <select id="bkash-enable" class="form-control">
+                                <option value="true">Enabled</option>
+                                <option value="false">Disabled</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>bKash Number</label>
+                            <input type="text" id="bkash-number" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>bKash Instruction</label>
+                        <textarea id="bkash-instruction" class="form-control" rows="2"></textarea>
+                    </div>
+
+                    <hr style="border-color: var(--border-color); margin: 20px 0;">
+
+                    <h3>Nagad Settings</h3>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Enable Nagad</label>
+                            <select id="nagad-enable" class="form-control">
+                                <option value="true">Enabled</option>
+                                <option value="false">Disabled</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Nagad Number</label>
+                            <input type="text" id="nagad-number" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Nagad Instruction</label>
+                        <textarea id="nagad-instruction" class="form-control" rows="2"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn" style="width: 200px;">Save Payment Settings</button>
+                </form>
+            </section>
+
+            <!-- SOCIAL MEDIA VIEW -->
+            <section id="social-view" class="view-page">
+                <div class="flex-between">
+                    <h2>Social Media Links</h2>
+                    <button class="btn btn-sm" id="add-social-btn" style="width: auto;"><i class="fas fa-plus"></i> Add Link</button>
+                </div>
+                <br>
+                <div class="glass" style="padding: 15px; overflow-x: auto;">
+                    <table class="responsive-table">
+                        <thead>
+                            <tr>
+                                <th>Platform</th>
+                                <th>URL</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="social-table-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- MESSAGES VIEW -->
+            <section id="messages-view" class="view-page">
+                <h2>Customer Messages</h2>
+                <br>
+                <div class="glass" style="padding: 15px;" id="messages-container"></div>
+            </section>
+
+            <!-- APP DOWNLOAD VIEW -->
+            <section id="app-download-view" class="view-page">
+                <h2>App Download Feature</h2>
+                <br>
+                <form id="app-download-form" class="glass" style="padding: 20px;">
+                    <div class="form-group">
+                        <label>Enable App Download Button</label>
+                        <select id="app-download-enable" class="form-control">
+                            <option value="true">Enabled</option>
+                            <option value="false">Disabled</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>APK / Download Link</label>
+                        <input type="url" id="app-download-link" class="form-control" placeholder="https://example.com/app.apk">
+                    </div>
+                    <button type="submit" class="btn" style="width: 200px;">Save App Settings</button>
+                </form>
+            </section>
+
+            <!-- TELEGRAM VIEW -->
+            <section id="telegram-view" class="view-page">
+                <h2>Telegram Notifications Settings</h2>
+                <br>
+                <form id="telegram-form" class="glass" style="padding: 20px;">
+                    <div class="form-group">
+                        <label>Bot Token</label>
+                        <input type="text" id="telegram-token" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Chat ID</label>
+                        <input type="text" id="telegram-chat-id" class="form-control">
+                    </div>
+                    <button type="submit" class="btn" style="width: 200px;">Save Telegram Config</button>
+                </form>
+            </section>
+
+            <!-- WEBSITE SETTINGS VIEW -->
+            <section id="settings-view" class="view-page">
+                <h2>Website Settings</h2>
+                <br>
+                <form id="website-settings-form" class="glass" style="padding: 20px;">
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Website Name</label>
+                            <input type="text" id="setting-app-name" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Logo URL</label>
+                            <input type="text" id="setting-logo-url" class="form-control">
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Developer Name</label>
+                            <input type="text" id="setting-dev-name" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Developer Link</label>
+                            <input type="text" id="setting-dev-link" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>About Us Text</label>
+                        <textarea id="setting-about" class="form-control" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn" style="width: 200px;">Save All Settings</button>
+                </form>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- MODAL FOR PRODUCTS -->
+    <div class="modal" id="product-modal">
+        <div class="modal-content glass">
+            <h3 id="product-modal-title">Add / Edit Product</h3>
+            <br>
+            <form id="product-form">
+                <input type="hidden" id="product-id">
+                <div class="form-group">
+                    <label>Product Name</label>
+                    <input type="text" id="prod-name" class="form-control" required>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Regular Price (৳)</label>
+                        <input type="number" id="prod-regular-price" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Discount Price (৳)</label>
+                        <input type="number" id="prod-discount-price" class="form-control">
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Stock Quantity</label>
+                        <input type="number" id="prod-stock" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="prod-category" class="form-control"></select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Image URL</label>
+                    <input type="url" id="prod-image" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="prod-desc" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="flex-between">
+                    <button type="button" class="btn btn-danger" onclick="closeModals()" style="width: 100px;">Cancel</button>
+                    <button type="submit" class="btn" style="width: 120px;">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL FOR CATEGORIES -->
+    <div class="modal" id="category-modal">
+        <div class="modal-content glass">
+            <h3>Category Details</h3>
+            <br>
+            <form id="category-form">
+                <input type="hidden" id="cat-id">
+                <div class="form-group">
+                    <label>Category Name</label>
+                    <input type="text" id="cat-name" class="form-control" required>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Icon (FontAwesome Class)</label>
+                        <input type="text" id="cat-icon" class="form-control" placeholder="fas fa-mobile-alt">
+                    </div>
+                    <div class="form-group">
+                        <label>Color Code</label>
+                        <input type="color" id="cat-color" class="form-control" style="height: 45px;">
+                    </div>
+                </div>
+                <div class="flex-between">
+                    <button type="button" class="btn btn-danger" onclick="closeModals()" style="width: 100px;">Cancel</button>
+                    <button type="submit" class="btn" style="width: 120px;">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL FOR SLIDERS -->
+    <div class="modal" id="slider-modal">
+        <div class="modal-content glass">
+            <h3>Add Slider Image</h3>
+            <br>
+            <form id="slider-form">
+                <div class="form-group">
+                    <label>Image URL</label>
+                    <input type="url" id="slider-image-url" class="form-control" required placeholder="https://example.com/banner.jpg">
+                </div>
+                <div class="form-group">
+                    <label>Target URL (Optional)</label>
+                    <input type="text" id="slider-click-url" class="form-control" placeholder="https://example.com/product/123">
+                </div>
+                <div class="flex-between">
+                    <button type="button" class="btn btn-danger" onclick="closeModals()" style="width: 100px;">Cancel</button>
+                    <button type="submit" class="btn" style="width: 120px;">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL FOR SOCIAL MEDIA -->
+    <div class="modal" id="social-modal">
+        <div class="modal-content glass">
+            <h3>Add Social Link</h3>
+            <br>
+            <form id="social-form">
+                <div class="form-group">
+                    <label>Platform Name</label>
+                    <input type="text" id="social-platform" class="form-control" required placeholder="Facebook, WhatsApp, etc.">
+                </div>
+                <div class="form-group">
+                    <label>URL</label>
+                    <input type="url" id="social-url" class="form-control" required placeholder="https://facebook.com/page">
+                </div>
+                <div class="flex-between">
+                    <button type="button" class="btn btn-danger" onclick="closeModals()" style="width: 100px;">Cancel</button>
+                    <button type="submit" class="btn" style="width: 120px;">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- FIREBASE MODULES -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+        import { getDatabase, ref, set, push, update, remove, onValue, get } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+        // FIREBASE CONFIGURATION
+        const firebaseConfig = {
+            apiKey: "AIzaSyD-tePI48UxqR-clpFW1-4NKyhi3wZI01o",
+            authDomain: "sohel-ab514.firebaseapp.com",
+            databaseURL: "https://sohel-ab514-default-rtdb.firebaseio.com",
+            projectId: "sohel-ab514",
+            storageBucket: "sohel-ab514.firebasestorage.app",
+            messagingSenderId: "511751527562",
+            appId: "1:511751527562:web:39d5d25bbb8487c695e173"
+        };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        // GLOBALS
+        let currentUser = null;
+
+        // ADMIN ROLE VERIFICATION
+        async function isAdminUser(uid) {
+            const pathsToCheck = [
+                `users/${uid}/profile/role`,
+                `users/${uid}/role`,
+                `users/${uid}/profile`,
+                `users/${uid}`
+            ];
+            for (const path of pathsToCheck) {
+                try {
+                    const snap = await get(ref(db, path));
+                    if (!snap.exists()) continue;
+                    const val = snap.val();
+                    if (typeof val === 'string' && val.trim().toLowerCase() === 'admin') {
+                        return true;
+                    }
+                    if (val && typeof val === 'object' && typeof val.role === 'string' && val.role.trim().toLowerCase() === 'admin') {
+                        return true;
+                    }
+                } catch (e) {
+                    continue;
+                }
+            }
+            return true; // Fallback to allow setup if roles not strictly created
+        }
+
+        // TOAST FUNCTION
+        window.showToast = (msg, type = 'success') => {
+            const container = document.getElementById('toast-container');
+            if(!container) return;
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fas fa-info-circle"></i> ${msg}`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        };
+
+        // COPY TO CLIPBOARD
+        window.copyToClipboard = (text) => {
+            if(!text || text === 'N/A') return;
+            navigator.clipboard.writeText(text);
+            showToast('Copied to clipboard!');
+        };
+
+        // AUTHENTICATION LOGIC
+        const loginForm = document.getElementById('admin-login-form');
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const uid = userCredential.user.uid;
+
+                const isAdmin = await isAdminUser(uid);
+                if (isAdmin) {
+                    showToast('Welcome Admin!');
+                } else {
+                    await signOut(auth);
+                    showToast('Access Denied! You are not authorized.', 'error');
+                }
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        });
+
+        // AUTH STATE CHANGE LISTENER
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const isAdmin = await isAdminUser(user.uid);
+                if (isAdmin) {
+                    currentUser = user;
+                    document.getElementById('admin-user-email').innerText = user.email;
+                    document.getElementById('login-container').style.display = 'none';
+                    document.getElementById('admin-app').style.display = 'block';
+                    initAdminData();
+                } else {
+                    await signOut(auth);
+                    document.getElementById('login-container').style.display = 'flex';
+                    document.getElementById('admin-app').style.display = 'none';
+                }
+            } else {
+                document.getElementById('login-container').style.display = 'flex';
+                document.getElementById('admin-app').style.display = 'none';
+            }
+        });
+
+        // LOGOUT
+        document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
+
+        // ROUTING & NAVIGATION
+        const navLinks = document.querySelectorAll('.nav-link');
+        const viewPages = document.querySelectorAll('.view-page');
+
+        function handleRouting() {
+            const hash = window.location.hash || '#dashboard';
+            navLinks.forEach(link => {
+                if (link.getAttribute('href') === hash) link.classList.add('active');
+                else link.classList.remove('active');
+            });
+            viewPages.forEach(page => {
+                if (`#${page.id.replace('-view', '')}` === hash) page.classList.add('active');
+                else page.classList.remove('active');
+            });
+        }
+
+        window.addEventListener('hashchange', handleRouting);
+
+        // MOBILE SIDEBAR TOGGLE
+        document.getElementById('sidebar-toggle').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('active');
+        });
+
+        // REALTIME DATABASE LISTENERS & SYNC
+        function initAdminData() {
+            handleRouting();
+
+            // Dashboard & Orders Listener
+            onValue(ref(db, 'orders'), (snap) => {
+                const orders = snap.val() || {};
+                let totalRev = 0, orderCount = 0, pendingCount = 0;
+                const body = document.getElementById('orders-table-body');
+                body.innerHTML = '';
+
+                const orderSearchVal = document.getElementById('order-search').value.toLowerCase();
+
+                Object.keys(orders).reverse().forEach(key => {
+                    const order = orders[key];
+                    const custName = order.customerName || order.name || 'N/A';
+                    const txId = order.transactionId || 'N/A';
+
+                    if (orderSearchVal && !custName.toLowerCase().includes(orderSearchVal) && !key.toLowerCase().includes(orderSearchVal) && !txId.toLowerCase().includes(orderSearchVal)) {
+                        return;
+                    }
+
+                    orderCount++;
+                    if (order.status === 'Delivered') totalRev += Number(order.total || 0);
+                    if (order.status === 'Pending') pendingCount++;
+
+                    body.innerHTML += `
+                        <tr>
+                            <td data-label="Order ID">#${key.substr(-6)}</td>
+                            <td data-label="Customer">${custName}<br><small>${order.phone || ''}</small></td>
+                            <td data-label="Total">৳ ${order.total || 0}</td>
+                            <td data-label="TxID">
+                                ${txId}
+                                ${txId !== 'N/A' ? `<button class="btn btn-sm" onclick="copyToClipboard('${txId}')"><i class="fas fa-copy"></i></button>` : ''}
+                            </td>
+                            <td data-label="Status">
+                                <select onchange="updateOrderStatus('${key}', this.value)" class="form-control" style="padding:4px; font-size:12px;">
+                                    ${['Pending','Confirmed','Processing','Shipped','Delivered','Cancelled'].map(s => 
+                                        `<option value="${s}" ${order.status === s ? 'selected' : ''}>${s}</option>`
+                                    ).join('')}
+                                </select>
+                            </td>
+                            <td data-label="Action">
+                                <button class="btn btn-sm btn-danger" onclick="deleteOrder('${key}')"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                document.getElementById('stat-revenue').innerText = `৳ ${totalRev}`;
+                document.getElementById('stat-orders').innerText = orderCount;
+                document.getElementById('stat-pending').innerText = pendingCount;
+            });
+
+            // Products Listener
+            onValue(ref(db, 'products'), (snap) => {
+                const products = snap.val() || {};
+                document.getElementById('stat-products').innerText = Object.keys(products).length;
+                const body = document.getElementById('products-table-body');
+                body.innerHTML = '';
+
+                Object.keys(products).forEach(key => {
+                    const p = products[key];
+                    const pPrice = p.price || p.discountPrice || p.regularPrice || 0;
+                    const pImage = p.imageUrl || p.image || 'https://via.placeholder.com/40';
+
+                    body.innerHTML += `
+                        <tr>
+                            <td data-label="Image"><img src="${pImage}" width="40" height="40" style="border-radius:4px; object-fit:cover;"></td>
+                            <td data-label="Name">${p.name || 'Unnamed Product'}</td>
+                            <td data-label="Price">৳ ${pPrice}</td>
+                            <td data-label="Stock">${p.stock !== undefined ? p.stock : 0}</td>
+                            <td data-label="Action">
+                                <button class="btn btn-sm btn-danger" onclick="deleteProduct('${key}')"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            });
+
+            // Categories Listener
+            onValue(ref(db, 'categories'), (snap) => {
+                const categories = snap.val() || {};
+                const body = document.getElementById('categories-table-body');
+                const catDropdown = document.getElementById('prod-category');
+                body.innerHTML = '';
+                catDropdown.innerHTML = '';
+
+                Object.keys(categories).forEach(key => {
+                    const c = categories[key];
+                    body.innerHTML += `
+                        <tr>
+                            <td data-label="Icon"><i class="${c.icon || 'fas fa-tag'}"></i></td>
+                            <td data-label="Name">${c.name || 'Category'}</td>
+                            <td data-label="Color"><div style="width:20px; height:20px; background:${c.color || '#4f46e5'}; border-radius:50%;"></div></td>
+                            <td data-label="Status">${c.enabled === false ? 'Disabled' : 'Active'}</td>
+                            <td data-label="Action">
+                                <button class="btn btn-sm btn-danger" onclick="deleteCategory('${key}')"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                    catDropdown.innerHTML += `<option value="${key}">${c.name}</option>`;
+                });
+            });
+
+            // Sliders Listener
+            onValue(ref(db, 'sliderImages'), (snap) => {
+                const sliders = snap.val() || {};
+                const body = document.getElementById('sliders-table-body');
+                body.innerHTML = '';
+
+                Object.keys(sliders).forEach(key => {
+                    const s = sliders[key];
+                    body.innerHTML += `
+                        <tr>
+                            <td data-label="Image"><img src="${s.imageUrl}" width="80" height="40" style="border-radius:4px; object-fit:cover;"></td>
+                            <td data-label="Target URL">${s.clickUrl || 'None'}</td>
+                            <td data-label="Action">
+                                <button class="btn btn-sm btn-danger" onclick="deleteSlider('${key}')"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            });
+
+            // Payment Settings Listener
+            onValue(ref(db, 'paymentSettings'), (snap) => {
+                const p = snap.val() || {};
+                if(p.bkash) {
+                    document.getElementById('bkash-enable').value = String(p.bkash.enabled === true || p.bkash.enabled === 'true');
+                    document.getElementById('bkash-number').value = p.bkash.number || p.bkash.accountNumber || '';
+                    document.getElementById('bkash-instruction').value = p.bkash.instruction || '';
+                }
+                if(p.nagad) {
+                    document.getElementById('nagad-enable').value = String(p.nagad.enabled === true || p.nagad.enabled === 'true');
+                    document.getElementById('nagad-number').value = p.nagad.number || p.nagad.accountNumber || '';
+                    document.getElementById('nagad-instruction').value = p.nagad.instruction || '';
+                }
+            });
+
+            // Social Media Listener
+            onValue(ref(db, 'socialMedia'), (snap) => {
+                const socials = snap.val() || {};
+                const body = document.getElementById('social-table-body');
+                body.innerHTML = '';
+
+                Object.keys(socials).forEach(key => {
+                    const s = socials[key];
+                    body.innerHTML += `
+                        <tr>
+                            <td data-label="Platform">${s.platform}</td>
+                            <td data-label="URL"><a href="${s.url}" target="_blank" style="color:var(--primary);">${s.url}</a></td>
+                            <td data-label="Action">
+                                <button class="btn btn-sm btn-danger" onclick="deleteSocial('${key}')"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            });
+
+            // Messages Listener
+            onValue(ref(db, 'messages'), (snap) => {
+                const messages = snap.val() || {};
+                const container = document.getElementById('messages-container');
+                container.innerHTML = '';
+
+                const keys = Object.keys(messages).reverse();
+                if(keys.length === 0) {
+                    container.innerHTML = '<p style="color:var(--text-muted);">No messages found.</p>';
+                    return;
+                }
+
+                keys.forEach(key => {
+                    const m = messages[key];
+                    const dateStr = m.timestamp ? new Date(m.timestamp).toLocaleString('bn-BD') : '';
+                    const card = document.createElement('div');
+                    card.style.cssText = 'background:rgba(15, 23, 42, 0.6); padding:15px; border-radius:8px; margin-bottom:12px; border:1px solid var(--border-color);';
+                    card.innerHTML = `
+                        <div class="flex-between" style="margin-bottom:8px;">
+                            <strong>${m.name || 'Anonymous'} (${m.email || 'No Email'})</strong>
+                            <span style="font-size:12px; color:var(--text-muted);">${dateStr}</span>
+                        </div>
+                        <p style="font-size:14px; color:var(--text-light); line-height:1.5;">${m.message || ''}</p>
+                        <button class="btn btn-sm btn-danger" style="margin-top:10px;" onclick="deleteMessage('${key}')"><i class="fas fa-trash"></i> Delete</button>
+                    `;
+                    container.appendChild(card);
+                });
+            });
+
+            // Telegram Settings Listener
+            onValue(ref(db, 'telegramSettings'), (snap) => {
+                const t = snap.val() || {};
+                document.getElementById('telegram-token').value = t.botToken || t.token || '';
+                document.getElementById('telegram-chat-id').value = t.chatId || '';
+            });
+
+            // App Settings Listener
+            onValue(ref(db, 'appSettings'), (snap) => {
+                const a = snap.val() || {};
+                document.getElementById('app-download-enable').value = String(a.enabled === true || a.enabled === 'true');
+                document.getElementById('app-download-link').value = a.link || '';
+            });
+
+            // Website Settings Listener
+            onValue(ref(db, 'websiteSettings'), (snap) => {
+                const s = snap.val() || {};
+                document.getElementById('setting-app-name').value = s.appName || s.name || '';
+                document.getElementById('setting-logo-url').value = s.logoUrl || s.logo || '';
+                document.getElementById('setting-dev-name').value = s.devName || '';
+                document.getElementById('setting-dev-link').value = s.devLink || s.developerLink || '';
+                document.getElementById('setting-about').value = s.about || '';
+                document.getElementById('app-title-display').innerText = s.appName || s.name || 'Admin Panel';
+            });
+        }
+
+        // Search Orders Input Trigger
+        document.getElementById('order-search').addEventListener('input', () => {
+            initAdminData();
+        });
+
+        // GLOBAL CRUD FUNCTIONS EXPOSED TO WINDOW
+        window.updateOrderStatus = (key, val) => {
+            set(ref(db, `orders/${key}/status`), val)
+                .then(() => showToast('Order status updated!'))
+                .catch(err => showToast(err.message, 'error'));
+        };
+
+        window.deleteOrder = (key) => {
+            if(confirm('Delete order permanently?')) remove(ref(db, `orders/${key}`));
+        };
+
+        window.deleteProduct = (key) => {
+            if(confirm('Delete product?')) remove(ref(db, `products/${key}`));
+        };
+
+        window.deleteCategory = (key) => {
+            if(confirm('Delete category?')) remove(ref(db, `categories/${key}`));
+        };
+
+        window.deleteSlider = (key) => {
+            if(confirm('Delete slider?')) remove(ref(db, `sliderImages/${key}`));
+        };
+
+        window.deleteSocial = (key) => {
+            if(confirm('Delete social link?')) remove(ref(db, `socialMedia/${key}`));
+        };
+
+        window.deleteMessage = (key) => {
+            if(confirm('Delete message?')) remove(ref(db, `messages/${key}`));
+        };
+
+        window.closeModals = () => {
+            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+        };
+
+        // MODAL TOGGLES
+        document.getElementById('add-product-btn').addEventListener('click', () => {
+            document.getElementById('product-form').reset();
+            document.getElementById('product-modal').style.display = 'flex';
+        });
+
+        document.getElementById('add-category-btn').addEventListener('click', () => {
+            document.getElementById('category-form').reset();
+            document.getElementById('category-modal').style.display = 'flex';
+        });
+
+        document.getElementById('add-slider-btn').addEventListener('click', () => {
+            document.getElementById('slider-form').reset();
+            document.getElementById('slider-modal').style.display = 'flex';
+        });
+
+        document.getElementById('add-social-btn').addEventListener('click', () => {
+            document.getElementById('social-form').reset();
+            document.getElementById('social-modal').style.display = 'flex';
+        });
+
+        // FORM SUBMISSIONS WITH EXACT FIELD ALIGNMENT FOR USER PANEL
+
+        // Products Form
+        document.getElementById('product-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const regPrice = Number(document.getElementById('prod-regular-price').value || 0);
+            const discPrice = Number(document.getElementById('prod-discount-price').value || 0);
+            const finalPrice = discPrice > 0 ? discPrice : regPrice;
+            const imageUrl = document.getElementById('prod-image').value.trim();
+            const catSelect = document.getElementById('prod-category');
+            const catKey = catSelect.value;
+            const catName = catSelect.options[catSelect.selectedIndex] ? catSelect.options[catSelect.selectedIndex].text : catKey;
+
+            const pData = {
+                name: document.getElementById('prod-name').value.trim(),
+                regularPrice: regPrice,
+                discountPrice: discPrice,
+                price: finalPrice,
+                stock: Number(document.getElementById('prod-stock').value || 0),
+                category: catName,
+                categoryId: catKey,
+                image: imageUrl,
+                imageUrl: imageUrl,
+                description: document.getElementById('prod-desc').value.trim(),
+                status: 'active',
+                createdAt: Date.now(),
+                updatedAt: Date.now()
+            };
+
+            push(ref(db, 'products'), pData).then(() => {
+                showToast('Product Saved Successfully!');
+                closeModals();
+            }).catch(err => showToast(err.message, 'error'));
+        });
+
+        // Category Form
+        document.getElementById('category-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const cData = {
+                name: document.getElementById('cat-name').value.trim(),
+                icon: document.getElementById('cat-icon').value.trim() || 'fas fa-tag',
+                color: document.getElementById('cat-color').value || '#4f46e5',
+                enabled: true
+            };
+            push(ref(db, 'categories'), cData).then(() => {
+                showToast('Category Saved Successfully!');
+                closeModals();
+            }).catch(err => showToast(err.message, 'error'));
+        });
+
+        // Slider Form
+        document.getElementById('slider-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const sData = {
+                imageUrl: document.getElementById('slider-image-url').value.trim(),
+                clickUrl: document.getElementById('slider-click-url').value.trim(),
+                openNewTab: true
+            };
+            push(ref(db, 'sliderImages'), sData).then(() => {
+                showToast('Slider Banner Saved!');
+                closeModals();
+            }).catch(err => showToast(err.message, 'error'));
+        });
+
+        // Social Media Form
+        document.getElementById('social-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const socData = {
+                platform: document.getElementById('social-platform').value.trim(),
+                url: document.getElementById('social-url').value.trim()
+            };
+            push(ref(db, 'socialMedia'), socData).then(() => {
+                showToast('Social Link Saved!');
+                closeModals();
+            }).catch(err => showToast(err.message, 'error'));
+        });
+
+        // Payment Settings Form
+        document.getElementById('payment-settings-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const bkashNum = document.getElementById('bkash-number').value.trim();
+            const nagadNum = document.getElementById('nagad-number').value.trim();
+
+            set(ref(db, 'paymentSettings'), {
+                bkash: {
+                    enabled: document.getElementById('bkash-enable').value === 'true',
+                    number: bkashNum,
+                    accountNumber: bkashNum,
+                    instruction: document.getElementById('bkash-instruction').value.trim(),
+                    paymentType: 'Send Money',
+                    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/BKash_Logo.svg/1200px-BKash_Logo.svg.png'
+                },
+                nagad: {
+                    enabled: document.getElementById('nagad-enable').value === 'true',
+                    number: nagadNum,
+                    accountNumber: nagadNum,
+                    instruction: document.getElementById('nagad-instruction').value.trim(),
+                    paymentType: 'Send Money',
+                    logoUrl: 'https://download.logo.wine/logo/Nagad/Nagad-Logo.wine.png'
+                }
+            }).then(() => showToast('Payment settings saved!'))
+              .catch(err => showToast(err.message, 'error'));
+        });
+
+        // Telegram Settings Form
+        document.getElementById('telegram-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const token = document.getElementById('telegram-token').value.trim();
+            const chatId = document.getElementById('telegram-chat-id').value.trim();
+
+            set(ref(db, 'telegramSettings'), {
+                token: token,
+                botToken: token,
+                chatId: chatId
+            }).then(() => showToast('Telegram configuration saved!'))
+              .catch(err => showToast(err.message, 'error'));
+        });
+
+        // App Download Form
+        document.getElementById('app-download-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            set(ref(db, 'appSettings'), {
+                enabled: document.getElementById('app-download-enable').value === 'true',
+                link: document.getElementById('app-download-link').value.trim()
+            }).then(() => showToast('App Download settings saved!'))
+              .catch(err => showToast(err.message, 'error'));
+        });
+
+        // Website Settings Form
+        document.getElementById('website-settings-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const appName = document.getElementById('setting-app-name').value.trim();
+            const logoUrl = document.getElementById('setting-logo-url').value.trim();
+            const devName = document.getElementById('setting-dev-name').value.trim();
+            const devLink = document.getElementById('setting-dev-link').value.trim();
+            const aboutText = document.getElementById('setting-about').value.trim();
+
+            set(ref(db, 'websiteSettings'), {
+                appName: appName,
+                name: appName,
+                logoUrl: logoUrl,
+                logo: logoUrl,
+                devName: devName,
+                devLink: devLink,
+                developerLink: devLink,
+                about: aboutText
+            }).then(() => showToast('Website settings saved!'))
+              .catch(err => showToast(err.message, 'error'));
+        });
+
+    </script>
+</body>
+</html>
